@@ -357,7 +357,7 @@
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbwpJusIupegBxKvFAbNpt1iH0EYGNcUaDquN0ekVftZIqxKgbZ_KFYWXJCK05VtNePG/exec";
+    const API = "https://script.google.com/macros/s/AKfycby2JLdMLQUBK7JDWqLLCpRBoHkl39q3nChrLQE4AlDY-SfnJCzzmN9Wl-faF3E2o5rp/exec";
 
     let estado = { docente: "", correo: "", materia: null };
 
@@ -576,6 +576,9 @@
        "inp-horario-recuperacion","inp-aula-recuperacion"].forEach(id => {
         document.getElementById(id).value = "";
       });
+      const btnEnviar         = document.getElementById("btn-enviar");
+      btnEnviar.disabled      = false;
+      btnEnviar.textContent   = "Registrar recuperación ✓";
       document.getElementById("btn-1").disabled              = true;
       autocompleteList.classList.remove("open");
       document.querySelector(".card .stepper").style.display = "";
