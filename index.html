@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Recuperaciones — Ing. Sistemas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Variables ─────────────────────────────────────────── */
+    :root {
+      --gold:       #e8a825;
+      --gold-light: #f7c56d;
+      --gold-pale:  #fff8ec;
+      --dark:       #1a1209;
+      --mid:        #6b5c3e;
+      --soft:       #f5f0e8;
+      --white:      #fffdf7;
+      --border:     #e8dfc8;
+      --success:    #2d6a4f;
+      --error:      #c0392b;
+      --radius:     14px;
+      --shadow:     0 8px 40px rgba(26,18,9,0.10);
+    }
+
+    /* ── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--soft);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 80px;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,168,37,0.13) 0%, transparent 70%);
+    }
+
+    /* ── Header ────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: var(--dark);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 99px;
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 5vw, 42px);
+      color: var(--dark);
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 15px;
+      color: var(--mid);
+      max-width: 420px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Card ──────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 560px;
+      overflow: hidden;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    /* ── Stepper ───────────────────────────────────────────── */
+    .stepper {
+      display: flex;
+      background: var(--soft);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+    }
+
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 16px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #b0a090;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    .step.active { color: var(--gold); }
+    .step.done   { color: var(--success); }
+
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .step.active .step-num {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: white;
+    }
+
+    .step.done .step-num {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .step + .step::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 50%;
+      width: 1px; height: 40%;
+      transform: translateY(-50%);
+      background: var(--border);
+    }
+
+    /* ── Panels ────────────────────────────────────────────── */
+    .panel {
+      display: none;
+      padding: 36px 36px 32px;
+      animation: fadeUp 0.35s ease both;
+    }
+    .panel.active { display: block; }
+
+    .panel-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+
+    .panel-sub {
+      font-size: 14px;
+      color: var(--mid);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* ── Form elements ─────────────────────────────────────── */
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 7px;
+    }
+
+    select, input[type="date"], input[type="email"], input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--dark);
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b5c3e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(232,168,37,0.15);
+    }
+
+    select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ── Materia cards ─────────────────────────────────────── */
+    .materias-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .materia-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .materia-card:hover {
+      border-color: var(--gold-light);
+      background: var(--gold-pale);
+      transform: translateY(-1px);
+    }
+
+    .materia-card.selected {
+      border-color: var(--gold);
+      background: var(--gold-pale);
+      box-shadow: 0 0 0 3px rgba(232,168,37,0.15);
+    }
+
+    .materia-sigla {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: var(--dark);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .materia-info { flex: 1; min-width: 0; }
+
+    .materia-nombre {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .materia-detalle {
+      font-size: 12px;
+      color: var(--mid);
+      margin-top: 2px;
+    }
+
+    .materia-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .materia-card.selected .materia-check {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .materia-card.selected .materia-check::after {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    /* ── Info resumen ──────────────────────────────────────── */
+    .resumen {
+      background: var(--soft);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+      margin-bottom: 20px;
+    }
+
+    .resumen-fila {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .resumen-fila:last-child { border-bottom: none; }
+
+    .resumen-label {
+      color: var(--mid);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      min-width: 80px;
+      padding-top: 1px;
+    }
+
+    .resumen-valor {
+      color: var(--dark);
+      font-weight: 500;
+      flex: 1;
+    }
+
+    /* ── Botones ───────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: var(--dark);
+      width: 100%;
+      box-shadow: 0 4px 16px rgba(232,168,37,0.30);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 24px rgba(232,168,37,0.40);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--mid);
+      border: 1.5px solid var(--border);
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .btn-ghost:hover { border-color: var(--mid); color: var(--dark); }
+
+    /* ── Loading ───────────────────────────────────────────── */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 32px;
+      color: var(--mid);
+    }
+
+    .loading.active { display: block; }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    /* ── Mensaje de estado ─────────────────────────────────── */
+    .msg {
+      display: none;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .msg.active { display: block; }
+    .msg.error  { background: #fdf2f2; color: var(--error); border: 1px solid #f5c6c6; }
+    .msg.info   { background: var(--gold-pale); color: #92400e; border: 1px solid var(--gold-light); }
+
+    /* ── Panel éxito ───────────────────────────────────────── */
+    #panel-exito {
+      text-align: center;
+      padding: 52px 36px;
+    }
+
+    .exito-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+      animation: bounceIn 0.5s ease both;
+    }
+
+    .exito-titulo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+
+    .exito-texto {
+      font-size: 15px;
+      color: var(--mid);
+      line-height: 1.6;
+      max-width: 360px;
+      margin: 0 auto 28px;
+    }
+
+    /* ── Animations ────────────────────────────────────────── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes bounceIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.1); }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .panel { padding: 24px 20px 20px; }
+      .step  { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">Ingeniería de Sistemas</div>
+    <h1>Registro de<br>Recuperaciones</h1>
+    <p>Completá el formulario para programar tu clase de recuperación y notificar a tus estudiantes.</p>
+  </div>
+
+  <!-- Card principal -->
+  <div class="card">
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step active" id="step-1">
+        <div class="step-num">1</div>
+        Docente
+      </div>
+      <div class="step" id="step-2">
+        <div class="step-num">2</div>
+        Materia
+      </div>
+      <div class="step" id="step-3">
+        <div class="step-num">3</div>
+        Fechas
+      </div>
+    </div>
+
+    <!-- Panel 1: Docente -->
+    <div class="panel active" id="panel-1">
+      <div class="panel-title">¿Quién sos?</div>
+      <div class="panel-sub">Seleccioná tu nombre de la lista para ver tus materias asignadas.</div>
+
+      <div id="msg-1" class="msg"></div>
+      <div id="loading-1" class="loading">
+        <div class="spinner"></div>
+        Cargando docentes...
+      </div>
+
+      <div class="field">
+        <label>Nombre del docente</label>
+        <select id="sel-docente" disabled>
+          <option value="">Cargando...</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Correo institucional</label>
+        <input type="email" id="inp-correo" placeholder="docente@prueba.edu.bo">
+      </div>
+
+      <button class="btn btn-primary" id="btn-1" onclick="irPaso2()" disabled>
+        Continuar →
+      </button>
+    </div>
+
+    <!-- Panel 2: Materia -->
+    <div class="panel" id="panel-2">
+      <div class="panel-title">¿Qué materia?</div>
+      <div class="panel-sub">Seleccioná la materia que necesitás recuperar.</div>
+
+      <div id="msg-2" class="msg"></div>
+      <div id="loading-2" class="loading">
+        <div class="spinner"></div>
+        Cargando materias...
+      </div>
+
+      <div id="materias-grid" class="materias-grid"></div>
+
+      <br>
+      <button class="btn btn-ghost" onclick="irPaso1()">← Volver</button>
+      <button class="btn btn-primary" id="btn-2" onclick="irPaso3()" disabled>
+        Continuar →
+      </button>
+    </div>
+
+    <!-- Panel 3: Fechas -->
+    <div class="panel" id="panel-3">
+      <div class="panel-title">¿Cuándo?</div>
+      <div class="panel-sub">Confirmá los datos y elegí las fechas.</div>
+
+      <div id="msg-3" class="msg"></div>
+
+      <!-- Resumen de lo seleccionado -->
+      <div class="resumen" id="resumen"></div>
+
+      <div class="field">
+        <label>Fecha de clase faltada</label>
+        <input type="date" id="inp-fecha-faltada">
+      </div>
+
+      <div class="field">
+        <label>Fecha de recuperación</label>
+        <input type="date" id="inp-fecha-recuperacion">
+      </div>
+
+      <button class="btn btn-ghost" onclick="irPaso2()">← Volver</button>
+      <button class="btn btn-primary" id="btn-enviar" onclick="enviar()">
+        Registrar recuperación ✓
+      </button>
+    </div>
+
+    <!-- Panel éxito -->
+    <div id="panel-exito" style="display:none;">
+      <div class="exito-icon">🎉</div>
+      <div class="exito-titulo">¡Registrado!</div>
+      <div class="exito-texto">
+        La recuperación fue registrada correctamente.<br>
+        El recordatorio se enviará a tus estudiantes el día anterior a las 21:00 hs.
+      </div>
+      <button class="btn btn-primary" style="max-width:240px;margin:0 auto;" onclick="reiniciar()">
+        Registrar otra
+      </button>
+    </div>
+
+  </div><!-- /card -->
+
+  <script>
+    // ── Config ────────────────────────────────────────────────
+    const API = "https://script.google.com/macros/s/AKfycby2JLdMLQUBK7JDWqLLCpRBoHkl39q3nChrLQE4AlDY-SfnJCzzmN9Wl-faF3E2o5rp/exec";
+
+    // ── Estado ────────────────────────────────────────────────
+    let estado = {
+      docente  : "",
+      correo   : "",
+      materia  : null   // objeto completo {sigla, materia, paralelo, aula, horario}
+    };
+
+    // ── Helpers ───────────────────────────────────────────────
+    function mostrarMsg(panelNum, texto, tipo = "error") {
+      const el = document.getElementById(`msg-${panelNum}`);
+      el.textContent = texto;
+      el.className   = `msg active ${tipo}`;
+    }
+
+    function limpiarMsg(panelNum) {
+      const el = document.getElementById(`msg-${panelNum}`);
+      el.className = "msg";
+      el.textContent = "";
+    }
+
+    function setLoading(panelNum, activo) {
+      document.getElementById(`loading-${panelNum}`).classList.toggle("active", activo);
+    }
+
+    function actualizarStepper(paso) {
+      [1, 2, 3].forEach(n => {
+        const el = document.getElementById(`step-${n}`);
+        el.className = "step" + (n === paso ? " active" : n < paso ? " done" : "");
+      });
+    }
+
+    function mostrarPanel(num) {
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(`panel-${num}`).classList.add("active");
+      actualizarStepper(num);
+    }
+
+    // ── Paso 1: cargar docentes ───────────────────────────────
+    async function cargarDocentes() {
+      setLoading(1, true);
+      try {
+        const res  = await fetch(`${API}?accion=docentes`);
+        const json = await res.json();
+
+        if (!json.ok) throw new Error(json.error);
+
+        const sel = document.getElementById("sel-docente");
+        sel.innerHTML = `<option value="">Seleccioná tu nombre...</option>`;
+        json.docentes.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = d;
+          sel.appendChild(opt);
+        });
+        sel.disabled = false;
+
+      } catch (err) {
+        mostrarMsg(1, "No se pudo cargar la lista de docentes. Intentá recargar la página.", "error");
+      } finally {
+        setLoading(1, false);
+      }
+    }
+
+    // Habilitar botón cuando hay docente y correo
+    document.getElementById("sel-docente").addEventListener("change", validarPaso1);
+    document.getElementById("inp-correo").addEventListener("input", validarPaso1);
+
+    function validarPaso1() {
+      const docente = document.getElementById("sel-docente").value;
+      const correo  = document.getElementById("inp-correo").value.trim();
+      const valido  = docente !== "" && correo !== "" && correo.includes("@");
+      document.getElementById("btn-1").disabled = !valido;
+      limpiarMsg(1);
+    }
+
+    // ── Paso 2: cargar materias ───────────────────────────────
+    async function irPaso2() {
+      const docente = document.getElementById("sel-docente").value;
+      const correo  = document.getElementById("inp-correo").value.trim();
+
+      if (!docente || !correo) return;
+
+      estado.docente = docente;
+      estado.correo  = correo;
+      estado.materia = null;
+
+      mostrarPanel(2);
+      document.getElementById("btn-2").disabled = true;
+      setLoading(2, true);
+      document.getElementById("materias-grid").innerHTML = "";
+      limpiarMsg(2);
+
+      try {
+        const res  = await fetch(`${API}?accion=materias&docente=${encodeURIComponent(docente)}`);
+        const json = await res.json();
+
+        if (!json.ok) throw new Error(json.error);
+
+        const grid = document.getElementById("materias-grid");
+        json.materias.forEach((m, i) => {
+          const card = document.createElement("div");
+          card.className = "materia-card";
+          card.dataset.index = i;
+          card.innerHTML = `
+            <div class="materia-sigla">${m.sigla}</div>
+            <div class="materia-info">
+              <div class="materia-nombre">${m.materia}</div>
+              <div class="materia-detalle">Paralelo ${m.paralelo} · Aula ${m.aula} · ${m.horario}</div>
+            </div>
+            <div class="materia-check"></div>
+          `;
+          card.addEventListener("click", () => seleccionarMateria(card, m));
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        mostrarMsg(2, "No se pudieron cargar las materias: " + err.message, "error");
+      } finally {
+        setLoading(2, false);
+      }
+    }
+
+    function seleccionarMateria(card, materia) {
+      document.querySelectorAll(".materia-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      estado.materia = materia;
+      document.getElementById("btn-2").disabled = false;
+      limpiarMsg(2);
+    }
+
+    // ── Paso 3: fechas ────────────────────────────────────────
+    function irPaso3() {
+      if (!estado.materia) return;
+
+      mostrarPanel(3);
+      limpiarMsg(3);
+
+      // Resumen
+      const m = estado.materia;
+      document.getElementById("resumen").innerHTML = `
+        <div class="resumen-fila">
+          <span class="resumen-label">Docente</span>
+          <span class="resumen-valor">${estado.docente}</span>
+        </div>
+        <div class="resumen-fila">
+          <span class="resumen-label">Materia</span>
+          <span class="resumen-valor">${m.sigla} — ${m.materia}</span>
+        </div>
+        <div class="resumen-fila">
+          <span class="resumen-label">Paralelo</span>
+          <span class="resumen-valor">${m.paralelo}</span>
+        </div>
+        <div class="resumen-fila">
+          <span class="resumen-label">Aula</span>
+          <span class="resumen-valor">${m.aula}</span>
+        </div>
+        <div class="resumen-fila">
+          <span class="resumen-label">Horario</span>
+          <span class="resumen-valor">${m.horario}</span>
+        </div>
+      `;
+
+      // Fecha mínima = hoy
+      const hoy = new Date().toISOString().split("T")[0];
+      document.getElementById("inp-fecha-faltada").max      = hoy;
+      document.getElementById("inp-fecha-recuperacion").min = hoy;
+    }
+
+    function irPaso1() {
+      mostrarPanel(1);
+    }
+
+    // ── Enviar ────────────────────────────────────────────────
+    async function enviar() {
+      limpiarMsg(3);
+
+      const fechaFaltada      = document.getElementById("inp-fecha-faltada").value;
+      const fechaRecuperacion = document.getElementById("inp-fecha-recuperacion").value;
+
+      if (!fechaFaltada) {
+        mostrarMsg(3, "Por favor ingresá la fecha de clase faltada.", "error");
+        return;
+      }
+      if (!fechaRecuperacion) {
+        mostrarMsg(3, "Por favor ingresá la fecha de recuperación.", "error");
+        return;
+      }
+      if (fechaRecuperacion <= fechaFaltada) {
+        mostrarMsg(3, "La fecha de recuperación debe ser posterior a la fecha de clase faltada.", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btn-enviar");
+      btn.disabled    = true;
+      btn.textContent = "Enviando...";
+
+      const payload = {
+        nombre             : estado.docente,
+        correo             : estado.correo,
+        materia            : estado.materia.materia,
+        paralelo           : estado.materia.paralelo,
+        aula               : estado.materia.aula,
+        horario            : estado.materia.horario,
+        fechaClaseFaltada  : fechaFaltada,
+        fechaRecuperacion  : fechaRecuperacion
+      };
+
+      try {
+        const res  = await fetch(API, {
+          method : "POST",
+          body   : JSON.stringify(payload)
+        });
+        const json = await res.json();
+
+        if (!json.ok) throw new Error(json.error);
+
+        // Mostrar éxito
+        document.querySelector(".card .stepper").style.display = "none";
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("panel-exito").style.display = "block";
+
+      } catch (err) {
+        mostrarMsg(3, "Error al registrar: " + err.message, "error");
+        btn.disabled    = false;
+        btn.textContent = "Registrar recuperación ✓";
+      }
+    }
+
+    // ── Reiniciar ─────────────────────────────────────────────
+    function reiniciar() {
+      estado = { docente: "", correo: "", materia: null };
+      document.getElementById("inp-correo").value           = "";
+      document.getElementById("inp-fecha-faltada").value    = "";
+      document.getElementById("inp-fecha-recuperacion").value = "";
+      document.getElementById("sel-docente").value          = "";
+      document.getElementById("btn-1").disabled             = true;
+      document.querySelector(".card .stepper").style.display = "";
+      document.getElementById("panel-exito").style.display  = "none";
+      mostrarPanel(1);
+      limpiarMsg(1);
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    cargarDocentes();
+  </script>
+</body>
+</html>
