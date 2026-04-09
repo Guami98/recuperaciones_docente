@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Recuperaciones — Ing. Sistemas</title>
-  <link rel="icon" href="book.png" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -524,9 +523,7 @@
         <div class="resumen-fila"><span class="resumen-label">Horario regular</span><span class="resumen-valor">${m.horario}</span></div>
       `;
 
-      const hoy = new Date().toISOString().split("T")[0];
-      document.getElementById("inp-fecha-faltada").max      = hoy;
-      document.getElementById("inp-fecha-recuperacion").min = hoy;
+      
 
       // Pre-rellenar con valores regulares como sugerencia
       document.getElementById("inp-horario-recuperacion").value = m.horario;
@@ -546,7 +543,6 @@
 
       if (!fechaFaltada)        { mostrarMsg(3, "Ingrese la fecha de clase faltada."); return; }
       if (!fechaRecuperacion)   { mostrarMsg(3, "Ingrese la fecha de recuperación."); return; }
-      if (fechaRecuperacion <= fechaFaltada) { mostrarMsg(3, "La fecha de recuperación debe ser posterior a la clase faltada."); return; }
       if (!horarioRecuperacion) { mostrarMsg(3, "Ingrese el horario de recuperación."); return; }
       if (!aulaRecuperacion)    { mostrarMsg(3, "Ingrese el aula de recuperación."); return; }
 
